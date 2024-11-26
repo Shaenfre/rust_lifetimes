@@ -1,13 +1,13 @@
 #[derive(Debug)]
 struct StrSplit<'a> {
-    remainder: &'a str,
+    remainder: Option<&'a str>,
     delim: &'a str,
 }
 
 impl<'a> StrSplit<'a> {
     fn new(input_str: &'a str, delim: &'a str) -> Self {
         Self {
-            remainder: input_str,
+            remainder: Some(input_str),
             delim,
         }
     }
@@ -16,16 +16,16 @@ impl<'a> StrSplit<'a> {
 impl<'a> Iterator for StrSplit<'a> {
     type Item = &'a str;
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(next_delim) = self.remainder.find(self.delim) {
-            let until_delim = &self.remainder[..next_delim];
-            self.remainder = &self.remainder[(next_delim + self.delim.len())..];
-            Some(until_delim)
-        } else if self.remainder.is_empty() {
-            None
+        if let Some(ref mut remainder) = self.remainder {
+            if let Some(next_delim) = remainder.find(self.delim) {
+                let until_delim = &remainder[..next_delim];
+                *remainder = &remainder[(next_delim + self.delim.len())..];
+                Some(until_delim)
+            } else {
+                self.remainder.take()
+            }
         } else {
-            let rest = self.remainder;
-            self.remainder = "";
-            Some(rest)
+             None
         }
     }
 }
